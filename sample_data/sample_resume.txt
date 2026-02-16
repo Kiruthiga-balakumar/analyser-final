@@ -1,0 +1,59 @@
+John Smith
+john.smith@email.com | (555) 123-4567 | LinkedIn: linkedin.com/in/johnsmith | GitHub: github.com/johnsmith
+
+PROFESSIONAL SUMMARY
+Experienced Full Stack Developer with 6 years of experience building scalable web applications. Strong proficiency in Python, JavaScript, and cloud technologies. Proven track record of delivering high-quality software solutions and leading cross-functional teams.
+
+TECHNICAL SKILLS
+Languages: Python, JavaScript, TypeScript, SQL, Java
+Web Frameworks: Django, FastAPI, React, Express.js
+Databases: PostgreSQL, MongoDB, MySQL, Redis
+Cloud & DevOps: AWS (EC2, S3, Lambda), Docker, Kubernetes, Jenkins, GitLab CI/CD
+Frontend: React, Vue.js, HTML5, CSS3, Tailwind CSS
+Tools & Platforms: Git, GitHub, Linux, Agile/Scrum, Jira
+
+PROFESSIONAL EXPERIENCE
+
+Senior Software Developer | Tech Solutions Inc. | Jan 2022 - Present
+- Led development of microservices architecture using Python and FastAPI, serving 10M+ requests/day
+- Architected and deployed Kubernetes clusters managing 50+ containerized applications
+- Implemented CI/CD pipelines using GitLab CI reducing deployment time by 75%
+- Mentored 4 junior developers and conducted technical code reviews
+- Technologies: Python, FastAPI, PostgreSQL, Docker, Kubernetes, AWS
+
+Full Stack Developer | Digital Innovations LLC | Jun 2020 - Dec 2021
+- Built responsive web applications using React and Django
+- Designed and optimized PostgreSQL databases for high-traffic applications
+- Implemented REST APIs serving mobile and web clients
+- Collaborated with product team using Agile methodology (2-week sprints)
+- Technologies: Python, Django, React, PostgreSQL, Docker, AWS EC2
+
+Junior Developer | StartUp Solutions | Jan 2019 - May 2020
+- Developed features for Python-based Flask web applications
+- Worked with MongoDB for NoSQL database design
+- Assisted in AWS cloud infrastructure setup and management
+- Participated in team code reviews and pair programming sessions
+- Technologies: Python, Flask, MongoDB, JavaScript
+
+EDUCATION
+Bachelor of Science in Computer Science
+State University | 2019 | GPA: 3.7/4.0
+
+CERTIFICATIONS
+AWS Certified Solutions Architect - Associate (2022)
+Kubernetes Application Developer (CKAD) - In Progress
+
+PROJECTS
+Resume Analyzer Application
+Built AI-powered resume analysis tool using Python, FastAPI, and machine learning
+Technologies: FastAPI, spaCy, sentence-transformers, React, PostgreSQL
+Status: Active Development
+
+Real-time Analytics Dashboard
+Designed and deployed real-time data visualization platform
+Technologies: React, Node.js, WebSocket, PostgreSQL, Redis
+
+ADDITIONAL INFORMATION
+- Open source contributor (50+ GitHub stars)
+- Technical blogger (published 15+ articles on medium.com)
+- Fluent in English and Spanish

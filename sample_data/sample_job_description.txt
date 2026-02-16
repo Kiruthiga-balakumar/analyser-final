@@ -1,0 +1,73 @@
+Senior Full Stack Developer
+
+We are seeking an experienced Full Stack Developer to join our growing engineering team. You will play a key role in designing, building, and deploying scalable web applications that serve millions of users.
+
+ROLE REQUIREMENTS
+
+Location: Remote
+Experience Level: 5+ years
+Employment Type: Full-time
+
+RESPONSIBILITIES
+- Design and develop robust backend services using modern frameworks
+- Build interactive and responsive frontend applications
+- Architect cloud-native solutions on AWS or Azure
+- Implement automated testing and CI/CD pipelines
+- Collaborate with product managers and designers in an Agile environment
+- Mentor junior developers and conduct technical interviews
+- Participate in system design reviews and technical decisions
+- Optimize database queries and application performance
+- Deploy and manage Kubernetes clusters
+- Implement GraphQL and REST APIs
+
+REQUIRED SKILLS & QUALIFICATIONS
+- 5+ years of professional software development experience
+- Strong proficiency in Python or Java
+- Expert-level JavaScript/TypeScript for frontend development
+- Experience with React, Vue.js, or Angular
+- Solid understanding of SQL and NoSQL databases (PostgreSQL, MongoDB)
+- Experience with Docker and containerization
+- AWS certification or equivalent cloud platform experience
+- Knowledge of Kubernetes for container orchestration
+- Understanding of microservices architecture
+- Git and version control expertise
+- Experience with CI/CD tools (Jenkins, GitLab CI, GitHub Actions)
+- Strong problem-solving and communication skills
+- Experience with Agile/Scrum methodologies
+
+NICE TO HAVE
+- Machine Learning/AI experience
+- Redis and caching strategies
+- Event-driven architecture (Kafka, RabbitMQ)
+- GraphQL implementation
+- TypeScript expertise
+- Linux system administration
+- Terraform or Infrastructure as Code
+- API Gateway and service mesh experience
+- Performance optimization and profiling
+- Security best practices and OWASP knowledge
+
+TECHNOLOGY STACK
+- Backend: Python (FastAPI, Django), Java (Spring Boot), or Node.js
+- Frontend: React, Vue.js, TypeScript
+- Databases: PostgreSQL, MongoDB
+- Infrastructure: AWS, Docker, Kubernetes, Terraform
+- DevOps: GitLab CI/CD, Jenkins, GitHub Actions
+- Monitoring: ELK Stack, Prometheus, Grafana
+
+COMPENSATION & BENEFITS
+- Competitive salary: $150K - $200K
+- Stock options
+- Comprehensive health insurance
+- 401(k) matching
+- Unlimited PTO
+- Professional development budget
+- Remote-first culture
+- Flexible working hours
+
+WHAT WE OFFER
+- Work on cutting-edge technologies
+- Collaborate with talented engineers
+- Opportunities for growth and mentorship
+- Innovative projects
+- Great company culture
