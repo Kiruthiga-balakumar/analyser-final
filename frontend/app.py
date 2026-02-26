@@ -1,18 +1,20 @@
 """
 Streamlit frontend for Resume Analyzer.
-Professional ATS-style dashboard with gradient theme and interactive charts.
+Futuristic glassmorphism-style ATS dashboard.
 """
 
 import streamlit as st
 import requests
 import json
+import pdfplumber
+from io import BytesIO
 
 # =========================
 # PAGE CONFIG
 # =========================
 st.set_page_config(
-    page_title="Resume Analyzer | ATS Dashboard",
-    page_icon="📊",
+    page_title="Resume Analyser",
+    page_icon="📄",
     layout="wide",
     initial_sidebar_state="expanded"
 )
@@ -20,47 +22,83 @@ st.set_page_config(
 # =========================
 # API CONFIG
 # =========================
-# Default local backend URL
-API_BASE_URL = st.secrets.get("API_URL", "http://127.0.0.1:8000")
+try:
+    API_BASE_URL = st.secrets["API_URL"]
+except Exception:
+    API_BASE_URL = "http://127.0.0.1:8000"
+
+API_ENDPOINT = f"{API_BASE_URL}/v1/analyze"
 
 # =========================
-# CUSTOM CSS
+# FUTURISTIC UI CSS
 # =========================
 st.markdown("""
 <style>
-  :root {
-    --purple-1: #6a0dad;
-    --purple-2: #3b1f7f;
-  }
-  html, body {
-    background: linear-gradient(180deg, #f5f7ff 0%, #e0e6ff 50%, #f5f7ff 100%);
-  }
-  .main-header {
-    background: linear-gradient(90deg, var(--purple-1), var(--purple-2));
-    padding: 2.5rem;
-    border-radius: 16px;
-    color: white;
-    text-align: center;
-    margin-bottom: 2rem;
-  }
-  .section-title { font-size: 26px; font-weight:700; margin-bottom: 12px; }
-  .card {
-    background: rgba(255,255,255,0.95);
-    border-radius: 12px;
-    padding: 18px;
-    box-shadow: 0 8px 22px rgba(16,22,64,0.08);
-    margin-bottom: 16px;
-  }
-  .skill-tag {
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+
+html, body {
+    font-family: 'Inter', sans-serif;
+    background: radial-gradient(circle at top, #2b1055, #000000 70%);
+    color: #ffffff;
+}
+
+/* HERO */
+.hero {
+    background: linear-gradient(135deg, rgba(138,43,226,0.45), rgba(0,255,255,0.25));
+    backdrop-filter: blur(18px);
+    border-radius: 24px;
+    padding: 3rem;
+    box-shadow: 0 30px 80px rgba(138,43,226,0.45);
+    margin-bottom: 2.5rem;
+    border: 1px solid rgba(255,255,255,0.15);
+}
+
+.hero h1 {
+    font-size: 3rem;
+    font-weight: 700;
+    margin: 0;
+}
+
+/* GLASS CARD */
+.glass-card {
+    background: rgba(255,255,255,0.08);
+    backdrop-filter: blur(16px);
+    border-radius: 20px;
+    padding: 20px;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+    border: 1px solid rgba(255,255,255,0.12);
+    margin-bottom: 20px;
+}
+
+/* SKILL TAGS */
+.skill {
     display:inline-block;
-    padding:6px 12px;
-    border-radius:18px;
+    padding:8px 14px;
     margin:6px;
+    border-radius:999px;
     font-weight:600;
-  }
-  .matched { background:#38ef7d; color:#0b3d2e }
-  .missing { background:#f45c43; color:white }
-  .extra { background:#fee140; color:#333 }
+    font-size:0.9rem;
+}
+
+.matched { background: linear-gradient(135deg,#00ff9d,#00c6ff); color:#000 }
+.missing { background: linear-gradient(135deg,#ff416c,#ff4b2b); }
+.extra   { background: linear-gradient(135deg,#f7971e,#ffd200); color:#000 }
+
+/* SECTION TITLES */
+.section-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin: 1.2rem 0;
+}
+
+/* FOOTER */
+.footer {
+    margin-top: 3rem;
+    padding: 1.5rem;
+    text-align: center;
+    font-size: 0.95rem;
+    opacity: 0.85;
+}
 </style>
 """, unsafe_allow_html=True)
 
@@ -71,24 +109,32 @@ if "analysis_result" not in st.session_state:
     st.session_state.analysis_result = None
 
 # =========================
-# UI HELPERS
+# HELPERS
 # =========================
-def render_header():
+def extract_text_from_pdf(uploaded_file) -> str:
+    text = []
+    with pdfplumber.open(BytesIO(uploaded_file.getvalue())) as pdf:
+        for page in pdf.pages:
+            page_text = page.extract_text()
+            if page_text:
+                text.append(page_text)
+    return "\n".join(text)
+
+def hero():
     st.markdown("""
-    <div class="main-header">
-        <h1>🚀 AI Resume Analyzer</h1>
-        <p>ATS Scoring & Job Match Intelligence</p>
+    <div class="hero">
+        <h1>Resume Analyser</h1>
     </div>
     """, unsafe_allow_html=True)
 
-def render_skill_section(title, skills, cls):
-    st.markdown(f"### {title}")
+def skill_block(title, skills, css):
+    st.markdown(f"<div class='section-title'>{title}</div>", unsafe_allow_html=True)
     if not skills:
         st.info("No data available")
         return
-    html = "<div class='card'>"
+    html = "<div class='glass-card'>"
     for s in skills:
-        html += f"<span class='skill-tag {cls}'>{s}</span>"
+        html += f"<span class='skill {css}'>{s}</span>"
     html += "</div>"
     st.markdown(html, unsafe_allow_html=True)
 
@@ -96,124 +142,63 @@ def render_skill_section(title, skills, cls):
 # MAIN APP
 # =========================
 def main():
-    render_header()
+    hero()
 
-    col_left, col_right = st.columns([0.6, 0.4])
+    col1, col2 = st.columns([0.55, 0.45])
 
-    with col_left:
-        st.markdown("### 📄 Upload Resume")
-        resume_file = st.file_uploader(
-            "Upload Resume",
-            type=["pdf", "docx", "doc", "txt"],
-            label_visibility="collapsed"
-        )
+    with col1:
+        resume_file = st.file_uploader("Upload Resume (PDF)", type=["pdf"])
+        analyze = st.button("Analyze Resume")
 
-        analyze_btn = st.button("🔍 Analyze Resume")
-        clear_btn = st.button("🔄 Clear")
+    with col2:
+        job_description = st.text_area("Job Description", height=260)
 
-        if clear_btn:
-            st.session_state.analysis_result = None
-            st.experimental_rerun()
-
-    with col_right:
-        st.markdown("### 📝 Job Description")
-        job_description = st.text_area(
-            "Paste Job Description",
-            height=320,
-            label_visibility="collapsed"
-        )
-
-    # =========================
-    # ANALYSIS
-    # =========================
-    if analyze_btn:
-        if not resume_file:
-            st.error("❌ Please upload a resume")
+    if analyze:
+        if not resume_file or not job_description:
+            st.error("Please upload resume and enter job description")
             return
-        if not job_description or len(job_description.strip()) < 50:
-            st.error("❌ Job description must be at least 50 characters")
-            return
+
+        resume_text = extract_text_from_pdf(resume_file)
+
+        payload = {
+            "resume": resume_text,
+            "job_description": job_description
+        }
 
         with st.spinner("Analyzing resume..."):
-            try:
-                # Prepare payload
-                files = {"resume_file": (resume_file.name, resume_file.getvalue())}
-                data = {"job_description": job_description}
+            res = requests.post(API_ENDPOINT, json=payload)
+            if res.status_code == 200:
+                st.session_state.analysis_result = res.json()
+            else:
+                st.error(res.text)
 
-                response = requests.post(
-                    f"{API_BASE_URL}/analyze",
-                    files=files,
-                    data=data,
-                    timeout=120
-                )
-
-                if response.status_code == 200:
-                    st.session_state.analysis_result = response.json()
-                    st.success("✅ Analysis Complete")
-                else:
-                    try:
-                        err = response.json()
-                        st.error(f"❌ API Error: {err.get('detail','Unknown error')}")
-                    except:
-                        st.error(f"❌ API Error: {response.text}")
-
-            except requests.exceptions.ConnectionError:
-                st.error(
-                    "❌ Backend not reachable.\n\n"
-                    "Run backend first:\n"
-                    "```bash\nuvicorn backend.main:app --reload\n```"
-                )
-            except requests.exceptions.Timeout:
-                st.error("❌ Backend timeout. Try again later.")
-            except Exception as e:
-                st.error(f"❌ Error: {e}")
-
-    # =========================
-    # RESULTS
-    # =========================
     if st.session_state.analysis_result:
-        result = st.session_state.analysis_result
+        r = st.session_state.analysis_result
 
-        st.markdown("---")
-        st.markdown("## 📊 ATS Results")
+        st.markdown("<div class='section-title'>ATS Score</div>", unsafe_allow_html=True)
+        st.metric("Score", f"{r['ats_score']} / 100")
 
-        col1, col2, col3 = st.columns(3)
-        col1.metric("ATS Score", f"{result.get('ats_score','-')} / 100")
-        col2.metric("Matched Skills", result.get("matched_skill_count",0))
-        col3.metric("Coverage", f"{result.get('skill_coverage_percent',0):.0f}%")
+        skill_block("Matched Skills", r["matched_skills"], "matched")
+        skill_block("Missing Skills", r["missing_skills"], "missing")
+        skill_block("Extra Skills", r["extra_skills"], "extra")
 
-        st.markdown("---")
-
-        col1, col2 = st.columns(2)
-        with col1:
-            render_skill_section("✅ Matched Skills", result.get("matched_skills", []), "matched")
-        with col2:
-            render_skill_section("⚠️ Missing Skills", result.get("missing_skills", []), "missing")
-
-        render_skill_section("➕ Extra Skills", result.get("extra_skills", []), "extra")
-
-        st.markdown("---")
-        st.markdown("### 📥 Export Results")
+        st.markdown("<div class='section-title'>Improvement Suggestions</div>", unsafe_allow_html=True)
+        for s in r["suggestions"]:
+            st.markdown(f"- {s}")
 
         st.download_button(
-            "📄 Download JSON",
-            json.dumps(result, indent=2),
-            file_name="resume_analysis.json",
-            mime="application/json"
+            "Download Analysis (JSON)",
+            json.dumps(r, indent=2),
+            file_name="analysis.json"
         )
 
-    else:
-        st.markdown("""
-        <div class="card">
-            <h3>🎯 How it Works</h3>
-            <ol>
-                <li>Upload your resume</li>
-                <li>Paste job description</li>
-                <li>Click Analyze</li>
-            </ol>
-        </div>
-        """, unsafe_allow_html=True)
-
+    st.markdown("""
+    <div class="footer">
+        Resume Analyser is an intelligent ATS-based platform that evaluates resumes
+        against job descriptions, identifies skill gaps, and provides actionable
+        improvement suggestions to enhance employability.
+    </div>
+    """, unsafe_allow_html=True)
 
 if __name__ == "__main__":
     main()

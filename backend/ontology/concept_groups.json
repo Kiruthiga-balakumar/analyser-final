@@ -1,0 +1,105 @@
+{
+    "technical_skills": [
+        "programming",
+        "scripting",
+        "software development",
+        "application development",
+        "system development",
+        "technical implementation"
+    ],
+
+    "tools_and_technologies": [
+        "python",
+        "java",
+        "javascript",
+        "sql",
+        "excel",
+        "git",
+        "docker",
+        "linux",
+        "cloud platforms",
+        "frameworks",
+        "libraries"
+    ],
+
+    "data_and_analysis": [
+        "data analysis",
+        "data interpretation",
+        "data visualization",
+        "reporting",
+        "statistical analysis",
+        "insights generation"
+    ],
+
+    "engineering_and_design": [
+        "system design",
+        "architecture",
+        "solution design",
+        "process design",
+        "technical design",
+        "workflow design"
+    ],
+
+    "problem_solving": [
+        "problem solving",
+        "analytical thinking",
+        "root cause analysis",
+        "debugging",
+        "troubleshooting",
+        "issue resolution"
+    ],
+
+    "automation_and_optimization": [
+        "automation",
+        "process automation",
+        "workflow automation",
+        "optimization",
+        "performance improvement",
+        "efficiency improvement"
+    ],
+
+    "testing_and_quality": [
+        "testing",
+        "validation",
+        "quality assurance",
+        "verification",
+        "review processes",
+        "compliance checks"
+    ],
+
+    "deployment_and_operations": [
+        "deployment",
+        "release management",
+        "production support",
+        "monitoring",
+        "maintenance",
+        "incident management"
+    ],
+
+    "communication_and_collaboration": [
+        "communication",
+        "stakeholder interaction",
+        "cross functional collaboration",
+        "team coordination",
+        "documentation",
+        "presentation skills"
+    ],
+
+    "management_and_planning": [
+        "project management",
+        "time management",
+        "resource planning",
+        "task prioritization",
+        "risk management",
+        "delivery planning"
+    ],
+
+    "domain_knowledge": [
+        "domain expertise",
+        "industry knowledge",
+        "business understanding",
+        "functional knowledge",
+        "regulatory knowledge",
+        "process knowledge"
+    ]
+}

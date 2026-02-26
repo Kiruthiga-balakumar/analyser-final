@@ -1,34 +1,48 @@
-"""
-NLP utilities for Resume Analyzer: skill extraction, semantic matching, etc.
-"""
+# backend/nlp/extraction.py
 
-from typing import List, Dict, Any
-import spacy
+import re
+from collections import Counter
+from typing import Dict, Set
 
-nlp = spacy.load("en_core_web_sm")
-
-
-class SkillExtractor:
-    """Extracts skills from resume or job description text."""
-    def extract_skills(self, text: str) -> List[str]:
-        doc = nlp(text)
-        skills = [token.text.lower() for token in doc if token.pos_ in ("NOUN", "PROPN")]
-        return list(set(skills))
+# Canonical skill vocabulary (expand safely)
+SKILL_DB = {
+    "python", "java", "sql", "machine learning", "deep learning",
+    "nlp", "fastapi", "flask", "django",
+    "data analysis", "data science",
+    "pandas", "numpy",
+    "aws", "docker", "git"
+}
 
 
-class SemanticMatcher:
-    """Matches resume skills to job description skills."""
-    def match(self, jd_skills: List[str], resume_skills: List[str]) -> Dict[str, Any]:
-        matched = set(jd_skills).intersection(resume_skills)
-        score = len(matched) / max(len(jd_skills), 1) * 100
-        return {"matched_skills": list(matched), "score": score}
+def normalize_text(text: str) -> str:
+    text = text.lower()
+    text = re.sub(r"[^a-z0-9\s]", " ", text)
+    return re.sub(r"\s+", " ", text).strip()
 
 
-def analyze_resume_with_matcher(jd_text: str, resume_text: str):
+def extract_skills_with_frequency(text: str) -> Dict[str, int]:
     """
-    Call ATSAnalyzer without causing circular import.
-    Local import prevents circular import error.
+    Returns:
+        {
+            "python": 2,
+            "sql": 1,
+            ...
+        }
     """
-    from ..services.analyzer import ATSAnalyzer  # local import
-    analyzer = ATSAnalyzer()
-    return analyzer.analyze_resume(jd_text, resume_text)
+    if not text or not text.strip():
+        raise ValueError("Empty text passed to extractor")
+
+    text = normalize_text(text)
+    frequencies = Counter()
+
+    for skill in SKILL_DB:
+        pattern = r"\b" + re.escape(skill) + r"\b"
+        matches = re.findall(pattern, text)
+        if matches:
+            frequencies[skill] = len(matches)
+
+    return dict(frequencies)
+
+
+def extract_skill_set(text: str) -> Set[str]:
+    return set(extract_skills_with_frequency(text).keys())

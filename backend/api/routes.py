@@ -1,149 +1,129 @@
 """
-REST API endpoints for Resume Analyzer.
+FastAPI Routes – Resume vs JD Skill Analysis (ATS-safe)
+=====================================================
+- Deterministic keyword-based extraction
+- Exact skill matching
+- Schema-aligned response
 """
-import logging
-from fastapi import APIRouter, UploadFile, File, Form, HTTPException
-from pathlib import Path
 
-from backend.models.schemas import AnalysisRequest, AnalysisResponse
-from backend.utils.parser import extract_text_from_file, clean_text, validate_text
-from backend.config import UPLOAD_CONFIG
+from fastapi import APIRouter, HTTPException
+from typing import Dict
+import re
+import time
 
-logger = logging.getLogger(__name__)
-router = APIRouter()
+router = APIRouter(prefix="/v1", tags=["analysis"])
 
+# ------------------------------------------------------------------
+# Skill Vocabulary (expandable)
+# ------------------------------------------------------------------
 
-@router.post("/analyze", response_model=AnalysisResponse)
-async def analyze_resume(
-    job_description: str = Form(...),
-    resume_file: UploadFile = File(...)
-) -> AnalysisResponse:
-    """
-    Main endpoint: Analyze resume against job description.
-    """
-    try:
-        # Validate job description
-        if not job_description or len(job_description.strip()) < 50:
-            raise HTTPException(
-                status_code=400,
-                detail="Job description must be at least 50 characters"
-            )
+SKILL_DB = {
+    "python", "java", "sql", "machine learning", "deep learning",
+    "nlp", "fastapi", "flask", "django",
+    "pandas", "numpy",
+    "aws", "docker", "git", "data analysis", "data science"
+}
 
-        # Check file size
-        file_content = await resume_file.read()
-        if len(file_content) > UPLOAD_CONFIG["max_file_size"]:
-            raise HTTPException(
-                status_code=413,
-                detail=f"File too large. Maximum size: {UPLOAD_CONFIG['max_file_size'] / 1024 / 1024}MB"
-            )
+# ------------------------------------------------------------------
+# Utilities
+# ------------------------------------------------------------------
 
-        # Check file extension
-        file_ext = f".{resume_file.filename.split('.')[-1].lower()}"
-        if file_ext not in UPLOAD_CONFIG["allowed_extensions"]:
-            raise HTTPException(
-                status_code=415,
-                detail=f"Unsupported file format. Allowed: {', '.join(UPLOAD_CONFIG['allowed_extensions'])}"
-            )
+def normalize(text: str) -> str:
+    text = text.lower()
+    text = re.sub(r"[^a-z0-9\s]", " ", text)
+    return re.sub(r"\s+", " ", text).strip()
 
-        # Save temporary file
-        temp_path: Path = UPLOAD_CONFIG["temp_upload_dir"] / resume_file.filename
-        with open(temp_path, "wb") as f:
-            f.write(file_content)
+def extract_skills(text: str) -> set[str]:
+    if not text or not text.strip():
+        return set()
 
-        # Extract text from resume
-        try:
-            resume_text = extract_text_from_file(str(temp_path))
-        except Exception as e:
-            logger.error(f"Error extracting text from resume: {e}")
-            raise HTTPException(
-                status_code=400,
-                detail=f"Could not read resume file: {str(e)}"
-            )
-        finally:
-            temp_path.unlink(missing_ok=True)
+    text = normalize(text)
+    skills = set()
 
-        # Clean and validate texts
-        resume_text = clean_text(resume_text)
-        jd_text = clean_text(job_description)
+    for skill in SKILL_DB:
+        pattern = r"\b" + re.escape(skill) + r"\b"
+        if re.search(pattern, text):
+            skills.add(skill)
 
-        is_valid, error_msg = validate_text(resume_text, min_length=50)
-        if not is_valid:
-            raise HTTPException(status_code=400, detail=f"Resume validation failed: {error_msg}")
+    return skills
 
-        is_valid, error_msg = validate_text(jd_text, min_length=50)
-        if not is_valid:
-            raise HTTPException(status_code=400, detail=f"Job description validation failed: {error_msg}")
-
-        # Perform analysis using local import to avoid circular import
-        from backend.nlp.extraction import analyze_resume_with_matcher
-        logger.info("Starting resume analysis...")
-        analysis_result = analyze_resume_with_matcher(jd_text, resume_text)
-
-        logger.info(f"Analysis complete. ATS Score: {analysis_result.ats_score}")
-        return analysis_result
-
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"Unexpected error in analyze endpoint: {str(e)}")
-        raise HTTPException(
-            status_code=500,
-            detail=f"Analysis failed: {str(e)}"
-        )
-
-
-@router.post("/analyze-text", response_model=AnalysisResponse)
-async def analyze_text(request: AnalysisRequest) -> AnalysisResponse:
-    """
-    Alternative endpoint: Analyze resume and job description as raw text.
-    """
-    try:
-        if not request.resume_text or len(request.resume_text.strip()) < 50:
-            raise HTTPException(
-                status_code=400,
-                detail="Resume text must be at least 50 characters"
-            )
-
-        if not request.job_description or len(request.job_description.strip()) < 50:
-            raise HTTPException(
-                status_code=400,
-                detail="Job description must be at least 50 characters"
-            )
-
-        resume_text = clean_text(request.resume_text)
-        jd_text = clean_text(request.job_description)
-
-        is_valid, error_msg = validate_text(resume_text)
-        if not is_valid:
-            raise HTTPException(status_code=400, detail=f"Resume validation failed: {error_msg}")
-
-        is_valid, error_msg = validate_text(jd_text)
-        if not is_valid:
-            raise HTTPException(status_code=400, detail=f"Job description validation failed: {error_msg}")
-
-        # Perform analysis using local import
-        from backend.nlp.extraction import analyze_resume_with_matcher
-        logger.info("Starting resume analysis (text mode)...")
-        analysis_result = analyze_resume_with_matcher(jd_text, resume_text)
-
-        logger.info(f"Analysis complete. ATS Score: {analysis_result.ats_score}")
-        return analysis_result
-
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"Error in analyze-text endpoint: {str(e)}")
-        raise HTTPException(
-            status_code=500,
-            detail=f"Analysis failed: {str(e)}"
-        )
-
+# ------------------------------------------------------------------
+# API Endpoints
+# ------------------------------------------------------------------
 
 @router.get("/health")
-async def health_check():
-    """Health check endpoint."""
+def health_check():
+    return {"status": "ok"}
+
+@router.post("/analyze")
+def analyze(payload: Dict):
+    """
+    Expected payload:
+    {
+        "resume": "text...",
+        "job_description": "text..."
+    }
+    """
+
+    start = time.time()
+
+    resume_text = payload.get("resume")
+    jd_text = payload.get("job_description")
+
+    if not resume_text or not jd_text:
+        raise HTTPException(
+            status_code=400,
+            detail="Both 'resume' and 'job_description' are required."
+        )
+
+    resume_skills = extract_skills(resume_text)
+    jd_skills = extract_skills(jd_text)
+
+    if not jd_skills:
+        raise HTTPException(
+            status_code=422,
+            detail="No recognizable skills found in job description."
+        )
+
+    matched = resume_skills & jd_skills
+    missing = jd_skills - resume_skills
+    extra = resume_skills - jd_skills
+
+    ats_score = round((len(matched) / len(jd_skills)) * 100, 2)
+
     return {
-        "status": "healthy",
-        "service": "Resume Analyzer API",
-        "version": "1.0.0"
+        "ats_score": ats_score,
+
+        "matched_skills": sorted(matched),
+        "missing_skills": sorted(missing),
+        "extra_skills": sorted(extra),
+
+        "skill_coverage_percent": ats_score,
+        "total_jd_skills": len(jd_skills),
+        "matched_skill_count": len(matched),
+
+        "suggestions": [
+            f"Consider adding experience with '{skill}'"
+            for skill in sorted(missing)
+        ],
+
+        "chart_data": {
+            "skill_distribution": {
+                "labels": ["Matched", "Missing"],
+                "values": [len(matched), len(missing)],
+                "chart_type": "pie"
+            }
+        },
+
+        "detailed_matches": [
+            {
+                "skill": skill,
+                "similarity_score": 1.0,
+                "frequency_in_jd": 1,
+                "frequency_in_resume": 1
+            }
+            for skill in matched
+        ],
+
+        "processing_time": round(time.time() - start, 4),
     }
